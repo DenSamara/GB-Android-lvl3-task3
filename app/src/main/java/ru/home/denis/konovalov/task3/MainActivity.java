@@ -5,10 +5,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -18,10 +18,8 @@ import java.io.InputStream;
 import java.util.Locale;
 
 import io.reactivex.Completable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.observers.DisposableCompletableObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -44,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         btSelect.setOnClickListener(v -> startSelectImageActivity());
     }
 
-    private void startSelectImageActivity(){
+    private void startSelectImageActivity() {
         enableButton(false);
 
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
@@ -93,17 +91,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getOutputImagePath(String filename){
+    private String getOutputImagePath(String filename) {
         return String.format(Locale.ENGLISH, "%s/%s", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath(), filename);
     }
 
-    private void showProgress(boolean value){
-        if (progressBar != null){
+    private void showProgress(boolean value) {
+        if (progressBar != null) {
             progressBar.setVisibility(value ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
-    private void enableButton(boolean value){
+    private void enableButton(boolean value) {
         if (btSelect != null)
             btSelect.setEnabled(value);
     }
