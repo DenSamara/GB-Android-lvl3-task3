@@ -6,6 +6,18 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="-7dp"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        tools:visibility="visible"
+        />
+
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/bt_select_img"
         android:layout_width="wrap_content"

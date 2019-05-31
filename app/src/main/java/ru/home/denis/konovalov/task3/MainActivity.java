@@ -31,21 +31,22 @@ public class MainActivity extends AppCompatActivity {
     public static final String OUTPUT_FILENAME = "result.png";
     public static final int IDD_SELECT_PHOTO = 1;
 
-    private ProgressBar progressBar
-
+    private ProgressBar progressBar;
+    private AppCompatButton btSelect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        findViewById()
-
-        AppCompatButton button = findViewById(R.id.bt_select_img);
-        button.setOnClickListener(v -> startSelectImageActivity());
+        progressBar = findViewById(R.id.progress);
+        btSelect = findViewById(R.id.bt_select_img);
+        btSelect.setOnClickListener(v -> startSelectImageActivity());
     }
 
     private void startSelectImageActivity(){
+        enableButton(false);
+
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         photoPickerIntent.setType("image/*");
         startActivityForResult(photoPickerIntent, IDD_SELECT_PHOTO);
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
                 case IDD_SELECT_PHOTO:
                     try {
                         Uri path = data.getData();
+                        showProgress(true);
                         Disposable d = Completable.fromAction(() -> {
                             InputStream inputStream = getContentResolver().openInputStream(path);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
@@ -72,11 +74,15 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onComplete() {
                                         GlobalProc.toast(MainActivity.this, getString(R.string.success));
+                                        showProgress(false);
+                                        enableButton(true);
                                     }
 
                                     @Override
                                     public void onError(Throwable e) {
                                         GlobalProc.logE(TAG, e.toString());
+                                        showProgress(false);
+                                        enableButton(true);
                                     }
                                 });
                     } catch (Exception e) {
@@ -89,5 +95,16 @@ public class MainActivity extends AppCompatActivity {
 
     private String getOutputImagePath(String filename){
         return String.format(Locale.ENGLISH, "%s/%s", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath(), filename);
+    }
+
+    private void showProgress(boolean value){
+        if (progressBar != null){
+            progressBar.setVisibility(value ? View.VISIBLE : View.INVISIBLE);
+        }
+    }
+
+    private void enableButton(boolean value){
+        if (btSelect != null)
+            btSelect.setEnabled(value);
     }
 }
