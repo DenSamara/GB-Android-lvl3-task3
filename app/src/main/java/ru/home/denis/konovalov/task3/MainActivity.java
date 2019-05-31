@@ -155,9 +155,12 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 GlobalProc.logE(TAG, "DialogResult == NO");
                 break;
             case MyDialogFragment.RESULT_CANCEL:
-                //TODO отменяем процесс
+                //Отписываемся
                 disposable.dispose();
 
+                //TODO отменяем процесс
+
+                //Меняем внешний вид
                 changeView();
                 break;
             default:
