@@ -7,9 +7,11 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -23,7 +25,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.DisposableCompletableObserver;
 import io.reactivex.schedulers.Schedulers;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MyDialogFragment.IDlgResult {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String OUTPUT_FILENAME = "result.png";
@@ -57,7 +59,13 @@ public class MainActivity extends AppCompatActivity {
                 case IDD_SELECT_PHOTO:
                     try {
                         Uri path = data.getData();
+
                         showProgress(true);
+
+                        MyDialogFragment dialogFragment = MyDialogFragment.newInstance(getString(R.string.dlg_caption), getString(R.string.dlg_text));
+                        dialogFragment.setListener(this);
+                        dialogFragment.show(getSupportFragmentManager(), "");
+
                         Disposable d = Completable.fromAction(() -> {
                             InputStream inputStream = getContentResolver().openInputStream(path);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
@@ -104,5 +112,24 @@ public class MainActivity extends AppCompatActivity {
     private void enableButton(boolean value) {
         if (btSelect != null)
             btSelect.setEnabled(value);
+    }
+
+    @Override
+    public void onDialogResult(@MyDialogFragment.DlgResult int result) {
+        switch (result) {
+            case MyDialogFragment.RESULT_YES:
+                GlobalProc.logE(TAG, "DialogResult == YES");
+                break;
+            case MyDialogFragment.RESULT_NO:
+                GlobalProc.logE(TAG, "DialogResult == NO");
+                break;
+            case MyDialogFragment.RESULT_CANCEL:
+                GlobalProc.logE(TAG, "DialogResult == Cancel");
+                break;
+            default:
+                GlobalProc.logE(TAG, "Unexpectable result: " + result);
+                break;
+        }
+
     }
 }
