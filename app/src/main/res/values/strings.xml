@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Task3</string>
+    <string name="select_img">Select image</string>
+    <string name="success">Convertation complete successful</string>
 </resources>
