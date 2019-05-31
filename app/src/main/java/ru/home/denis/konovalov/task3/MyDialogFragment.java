@@ -1,15 +1,13 @@
 package ru.home.denis.konovalov.task3;
 
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.IntDef;
-import androidx.fragment.app.DialogFragment;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 public class MyDialogFragment extends DialogFragment {
     private static final String EXTRA_CAPTION = "MyDialogFragment.caption";

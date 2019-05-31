@@ -11,6 +11,8 @@ import android.os.Environment;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.View;
 import android.widget.ProgressBar;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
     private ProgressBar progressBar;
     private AppCompatButton btSelect;
+    private MyDialogFragment dialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +65,13 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
 
                         showProgress(true);
 
-                        MyDialogFragment dialogFragment = MyDialogFragment.newInstance(getString(R.string.dlg_caption), getString(R.string.dlg_text));
+                        dialogFragment = MyDialogFragment.newInstance(getString(R.string.dlg_caption), getString(R.string.dlg_text));
                         dialogFragment.setListener(this);
-                        dialogFragment.show(getSupportFragmentManager(), "");
+                        FragmentTransaction transaction = getSupportFragmentManager()
+                                .beginTransaction()
+                                .add(dialogFragment, MyDialogFragment.class.getName())
+                                .addToBackStack(null);
+                        transaction.commitAllowingStateLoss();
 
                         Disposable d = Completable.fromAction(() -> {
                             InputStream inputStream = getContentResolver().openInputStream(path);
@@ -80,19 +87,21 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                                     @Override
                                     public void onComplete() {
                                         GlobalProc.toast(MainActivity.this, getString(R.string.success));
-                                        showProgress(false);
-                                        enableButton(true);
+
+                                        changeView();
                                     }
 
                                     @Override
                                     public void onError(Throwable e) {
                                         GlobalProc.logE(TAG, e.toString());
-                                        showProgress(false);
-                                        enableButton(true);
+
+                                        changeView();
                                     }
                                 });
                     } catch (Exception e) {
                         GlobalProc.logE(TAG, e.toString());
+
+                        changeView();
                     }
                     break;
             }
@@ -114,6 +123,17 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
             btSelect.setEnabled(value);
     }
 
+    private void closeDialog(){
+        if (dialogFragment != null)
+            dialogFragment.dismiss();
+    }
+
+    private void changeView(){
+        showProgress(false);
+        enableButton(true);
+        closeDialog();
+    }
+
     @Override
     public void onDialogResult(@MyDialogFragment.DlgResult int result) {
         switch (result) {
@@ -124,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 GlobalProc.logE(TAG, "DialogResult == NO");
                 break;
             case MyDialogFragment.RESULT_CANCEL:
-                GlobalProc.logE(TAG, "DialogResult == Cancel");
+                closeDialog();
                 break;
             default:
                 GlobalProc.logE(TAG, "Unexpectable result: " + result);
