@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     public static final String OUTPUT_FILENAME = "result.png";
     public static final int IDD_SELECT_PHOTO = 1;
 
+    private Disposable disposable;
+
     private ProgressBar progressBar;
     private AppCompatButton btSelect;
     private MyDialogFragment dialogFragment;
@@ -45,6 +47,13 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
         progressBar = findViewById(R.id.progress);
         btSelect = findViewById(R.id.bt_select_img);
         btSelect.setOnClickListener(v -> startSelectImageActivity());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        closeDialog();
     }
 
     private void startSelectImageActivity() {
@@ -73,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                                 .addToBackStack(null);
                         transaction.commitAllowingStateLoss();
 
-                        Disposable d = Completable.fromAction(() -> {
+                        disposable = Completable.fromAction(() -> {
                             InputStream inputStream = getContentResolver().openInputStream(path);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
@@ -124,8 +133,10 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
     }
 
     private void closeDialog(){
-        if (dialogFragment != null)
+        if (dialogFragment != null) {
+            dialogFragment.setListener(null);
             dialogFragment.dismiss();
+        }
     }
 
     private void changeView(){
@@ -144,7 +155,10 @@ public class MainActivity extends AppCompatActivity implements MyDialogFragment.
                 GlobalProc.logE(TAG, "DialogResult == NO");
                 break;
             case MyDialogFragment.RESULT_CANCEL:
-                closeDialog();
+                //TODO отменяем процесс
+                disposable.dispose();
+
+                changeView();
                 break;
             default:
                 GlobalProc.logE(TAG, "Unexpectable result: " + result);
