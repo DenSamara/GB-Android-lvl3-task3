@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Environment;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.AppCompatButton;
+import android.os.Environment;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
 import android.view.View;
 import android.widget.ProgressBar;
 
@@ -18,21 +22,22 @@ import java.io.InputStream;
 import java.util.Locale;
 
 import io.reactivex.Completable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.observers.DisposableCompletableObserver;
 import io.reactivex.schedulers.Schedulers;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MyDialogFragment.IDlgResult {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String OUTPUT_FILENAME = "result.png";
     public static final int IDD_SELECT_PHOTO = 1;
 
+    private Disposable disposable;
+
     private ProgressBar progressBar;
     private AppCompatButton btSelect;
+    private MyDialogFragment dialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +49,14 @@ public class MainActivity extends AppCompatActivity {
         btSelect.setOnClickListener(v -> startSelectImageActivity());
     }
 
-    private void startSelectImageActivity(){
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        closeDialog();
+    }
+
+    private void startSelectImageActivity() {
         enableButton(false);
 
         Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
@@ -59,8 +71,18 @@ public class MainActivity extends AppCompatActivity {
                 case IDD_SELECT_PHOTO:
                     try {
                         Uri path = data.getData();
+
                         showProgress(true);
-                        Disposable d = Completable.fromAction(() -> {
+
+                        dialogFragment = MyDialogFragment.newInstance(getString(R.string.dlg_caption), getString(R.string.dlg_text));
+                        dialogFragment.setListener(this);
+                        FragmentTransaction transaction = getSupportFragmentManager()
+                                .beginTransaction()
+                                .add(dialogFragment, MyDialogFragment.class.getName())
+                                .addToBackStack(null);
+                        transaction.commitAllowingStateLoss();
+
+                        disposable = Completable.fromAction(() -> {
                             InputStream inputStream = getContentResolver().openInputStream(path);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
@@ -74,37 +96,77 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onComplete() {
                                         GlobalProc.toast(MainActivity.this, getString(R.string.success));
-                                        showProgress(false);
-                                        enableButton(true);
+
+                                        changeView();
                                     }
 
                                     @Override
                                     public void onError(Throwable e) {
                                         GlobalProc.logE(TAG, e.toString());
-                                        showProgress(false);
-                                        enableButton(true);
+
+                                        changeView();
                                     }
                                 });
                     } catch (Exception e) {
                         GlobalProc.logE(TAG, e.toString());
+
+                        changeView();
                     }
                     break;
             }
         }
     }
 
-    private String getOutputImagePath(String filename){
+    private String getOutputImagePath(String filename) {
         return String.format(Locale.ENGLISH, "%s/%s", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath(), filename);
     }
 
-    private void showProgress(boolean value){
-        if (progressBar != null){
+    private void showProgress(boolean value) {
+        if (progressBar != null) {
             progressBar.setVisibility(value ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
-    private void enableButton(boolean value){
+    private void enableButton(boolean value) {
         if (btSelect != null)
             btSelect.setEnabled(value);
+    }
+
+    private void closeDialog(){
+        if (dialogFragment != null) {
+            dialogFragment.setListener(null);
+            dialogFragment.dismiss();
+        }
+    }
+
+    private void changeView(){
+        showProgress(false);
+        enableButton(true);
+        closeDialog();
+    }
+
+    @Override
+    public void onDialogResult(@MyDialogFragment.DlgResult int result) {
+        switch (result) {
+            case MyDialogFragment.RESULT_YES:
+                GlobalProc.logE(TAG, "DialogResult == YES");
+                break;
+            case MyDialogFragment.RESULT_NO:
+                GlobalProc.logE(TAG, "DialogResult == NO");
+                break;
+            case MyDialogFragment.RESULT_CANCEL:
+                //Отписываемся
+                disposable.dispose();
+
+                //TODO отменяем процесс
+
+                //Меняем внешний вид
+                changeView();
+                break;
+            default:
+                GlobalProc.logE(TAG, "Unexpectable result: " + result);
+                break;
+        }
+
     }
 }

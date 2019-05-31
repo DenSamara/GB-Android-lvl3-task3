@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Task3</string>
     <string name="select_img">Select image</string>
-    <string name="success">Convertation complete successful</string>
+    <string name="success">Complete successful</string>
+    <string name="cancel">Отменить</string>
+    <string name="dlg_caption">Info</string>
+    <string name="dlg_text">Convertation in progress</string>
 </resources>
